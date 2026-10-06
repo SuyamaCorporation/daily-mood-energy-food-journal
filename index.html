@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Mood, Energy &amp; Food Journal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-violet-50 min-h-screen text-gray-800">
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <header class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-violet-700">🌈 Mood & Food Journal</h1>
+      <p class="text-violet-500 mt-1">Track mood, energy, sleep, and meals — spot your patterns</p>
+    </header>
+
+    <!-- Entry Form -->
+    <div class="bg-white rounded-xl shadow p-6 mb-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">Log Entry</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="entryDate" class="block text-sm font-medium text-gray-600 mb-1">Date</label>
+          <input type="date" id="entryDate" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400" aria-label="Entry date" />
+        </div>
+        <div>
+          <label for="entrySlot" class="block text-sm font-medium text-gray-600 mb-1">Time Slot</label>
+          <select id="entrySlot" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400" aria-label="Time slot">
+            <option value="morning">Morning</option>
+            <option value="midday">Midday</option>
+            <option value="afternoon">Afternoon</option>
+            <option value="evening">Evening</option>
+          </select>
+        </div>
+        <div>
+          <label for="moodRating" class="block text-sm font-medium text-gray-600 mb-1">Mood <span id="moodVal" class="text-violet-500 font-bold">5</span>/10</label>
+          <input type="range" id="moodRating" min="1" max="10" value="5" class="w-full accent-violet-500" aria-label="Mood rating 1 to 10" />
+        </div>
+        <div>
+          <label for="energyLevel" class="block text-sm font-medium text-gray-600 mb-1">Energy <span id="energyVal" class="text-orange-500 font-bold">5</span>/10</label>
+          <input type="range" id="energyLevel" min="1" max="10" value="5" class="w-full accent-orange-400" aria-label="Energy level 1 to 10" />
+        </div>
+        <div>
+          <label for="sleepHours" class="block text-sm font-medium text-gray-600 mb-1">Sleep Hours (last night)</label>
+          <input type="number" id="sleepHours" min="0" max="24" step="0.5" placeholder="7.5" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400" aria-label="Sleep hours" />
+        </div>
+        <div>
+          <label for="mealType" class="block text-sm font-medium text-gray-600 mb-1">Meal Type</label>
+          <select id="mealType" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400" aria-label="Meal type">
+            <option value="none">No meal</option>
+            <option value="light">Light (salad, fruit)</option>
+            <option value="balanced">Balanced</option>
+            <option value="heavy">Heavy (fried, fast food)</option>
+            <option value="sugary">Sugary (pastry, soda)</option>
+            <option value="protein">High protein</option>
+            <option value="carbs">High carb</option>
+          </select>
+        </div>
+        <div class="col-span-2">
+          <label for="entryNotes" class="block text-sm font-medium text-gray-600 mb-1">Notes (optional)</label>
+          <input type="text" id="entryNotes" maxlength="140" placeholder="Feeling stressed after meeting..." class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400" aria-label="Journal notes" />
+        </div>
+      </div>
+      <button id="logBtn" class="mt-4 w-full bg-violet-500 hover:bg-violet-600 text-white font-semibold py-2 rounded-lg transition-colors" aria-label="Save entry">
+        + Save Entry
+      </button>
+      <p id="formError" class="text-red-500 text-sm mt-2 hidden" role="alert"></p>
+    </div>
+
+    <!-- Weekly Pattern Charts -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="bg-white rounded-xl shadow p-5">
+        <h2 class="text-sm font-semibold text-gray-600 mb-3">Weekly Mood Trend</h2>
+        <div id="moodChart" class="space-y-1" aria-label="Weekly mood averages per day"></div>
+      </div>
+      <div class="bg-white rounded-xl shadow p-5">
+        <h2 class="text-sm font-semibold text-gray-600 mb-3">Weekly Energy Trend</h2>
+        <div id="energyChart" class="space-y-1" aria-label="Weekly energy averages per day"></div>
+      </div>
+    </div>
+
+    <!-- Food-Mood Correlation -->
+    <div class="bg-white rounded-xl shadow p-5 mb-6">
+      <h2 class="text-sm font-semibold text-gray-600 mb-3">Food Type → Mood & Energy Correlation</h2>
+      <div id="correlationTable" aria-label="Correlation between food types and mood/energy"></div>
+    </div>
+
+    <!-- Export + History -->
+    <div class="bg-white rounded-xl shadow p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-gray-600">Journal History</h2>
+        <button id="exportBtn" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded-lg transition-colors" aria-label="Export weekly digest as CSV">Export CSV</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs" aria-label="Journal entries table">
+          <thead>
+            <tr class="text-left text-gray-400 border-b">
+              <th class="pb-2 pr-2">Date</th>
+              <th class="pb-2 pr-2">Slot</th>
+              <th class="pb-2 pr-2">Mood</th>
+              <th class="pb-2 pr-2">Energy</th>
+              <th class="pb-2 pr-2">Sleep</th>
+              <th class="pb-2 pr-2">Meal</th>
+              <th class="pb-2 pr-2">Notes</th>
+              <th class="pb-2"></th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <tr><td colspan="8" class="py-4 text-center text-gray-300">No entries yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'moodFoodJournal_v1';
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+    }
+    function save(data) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+    }
+
+    const moodEl = document.getElementById('moodRating');
+    const energyEl = document.getElementById('energyLevel');
+    moodEl.addEventListener('input', () => document.getElementById('moodVal').textContent = moodEl.value);
+    energyEl.addEventListener('input', () => document.getElementById('energyVal').textContent = energyEl.value);
+
+    const slotLabels = { morning:'Morning', midday:'Midday', afternoon:'Afternoon', evening:'Evening' };
+    const mealLabels = { none:'None', light:'Light', balanced:'Balanced', heavy:'Heavy', sugary:'Sugary', protein:'High Protein', carbs:'High Carb' };
+    const dowNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const dowColors = ['bg-violet-400','bg-violet-500','bg-violet-600','bg-violet-400','bg-violet-300','bg-purple-400','bg-purple-300'];
+    const energyColors = ['bg-orange-300','bg-orange-400','bg-orange-500','bg-orange-400','bg-orange-300','bg-amber-400','bg-amber-300'];
+
+    function getDOW(dateStr) {
+      return (new Date(dateStr + 'T12:00:00').getDay() + 6) % 7;
+    }
+
+    function renderWeeklyChart(entries, field, chartId, colors) {
+      const sums = [0,0,0,0,0,0,0];
+      const cnts = [0,0,0,0,0,0,0];
+      entries.forEach(e => { const d = getDOW(e.date); sums[d] += e[field]; cnts[d]++; });
+      const avgs = sums.map((s,i) => cnts[i] ? +(s/cnts[i]).toFixed(1) : null);
+      const container = document.getElementById(chartId);
+      container.innerHTML = '';
+      avgs.forEach((avg, i) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2';
+        const lbl = document.createElement('div');
+        lbl.className = 'text-xs text-gray-500 w-8 shrink-0';
+        lbl.textContent = dowNames[i];
+        const barWrap = document.createElement('div');
+        barWrap.className = 'flex-1 bg-gray-100 rounded-full h-3';
+        const bar = document.createElement('div');
+        bar.className = `${colors[i]} h-3 rounded-full transition-all`;
+        bar.style.width = avg !== null ? (avg / 10 * 100) + '%' : '0%';
+        const val = document.createElement('div');
+        val.className = 'text-xs text-gray-400 w-8 text-right';
+        val.textContent = avg !== null ? avg : '—';
+        barWrap.appendChild(bar);
+        row.appendChild(lbl);
+        row.appendChild(barWrap);
+        row.appendChild(val);
+        container.appendChild(row);
+      });
+    }
+
+    function renderCorrelation(entries) {
+      const mealTypes = ['light','balanced','heavy','sugary','protein','carbs'];
+      const data = {};
+      mealTypes.forEach(m => { data[m] = { moodSum:0, energySum:0, count:0 }; });
+      entries.forEach(e => {
+        if (data[e.meal]) {
+          data[e.meal].moodSum += e.mood;
+          data[e.meal].energySum += e.energy;
+          data[e.meal].count++;
+        }
+      });
+      const container = document.getElementById('correlationTable');
+      container.innerHTML = '';
+      const relevant = mealTypes.filter(m => data[m].count > 0);
+      if (!relevant.length) {
+        const p = document.createElement('p');
+        p.className = 'text-xs text-gray-300 text-center py-2';
+        p.textContent = 'Log more entries to see correlations';
+        container.appendChild(p);
+        return;
+      }
+      const table = document.createElement('table');
+      table.className = 'w-full text-xs';
+      const thead = document.createElement('thead');
+      thead.innerHTML = '';
+      const htr = document.createElement('tr');
+      ['Meal Type','Entries','Avg Mood','Avg Energy'].forEach(h => {
+        const th = document.createElement('th');
+        th.className = 'text-left text-gray-400 pb-2 pr-3';
+        th.textContent = h;
+        htr.appendChild(th);
+      });
+      thead.appendChild(htr);
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      relevant.forEach(m => {
+        const d = data[m];
+        const avgMood = (d.moodSum / d.count).toFixed(1);
+        const avgEnergy = (d.energySum / d.count).toFixed(1);
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-50';
+        [mealLabels[m], d.count, avgMood, avgEnergy].forEach((v, i) => {
+          const td = document.createElement('td');
+          td.className = 'py-1.5 pr-3';
+          td.textContent = v;
+          if (i === 2) td.className += ' font-semibold ' + (parseFloat(avgMood) >= 7 ? 'text-green-600' : parseFloat(avgMood) <= 4 ? 'text-red-500' : 'text-gray-700');
+          if (i === 3) td.className += ' font-semibold ' + (parseFloat(avgEnergy) >= 7 ? 'text-orange-600' : parseFloat(avgEnergy) <= 4 ? 'text-blue-400' : 'text-gray-700');
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    function renderHistory(entries) {
+      const tbody = document.getElementById('historyBody');
+      tbody.innerHTML = '';
+      if (!entries.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 8; td.className = 'py-4 text-center text-gray-300';
+        td.textContent = 'No entries yet';
+        tr.appendChild(td); tbody.appendChild(tr); return;
+      }
+      [...entries].reverse().forEach((e, i) => {
+        const realIdx = entries.length - 1 - i;
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-50 hover:bg-violet-50';
+        [e.date, slotLabels[e.slot]||e.slot, e.mood+'/10', e.energy+'/10', e.sleep?e.sleep+'h':'—', mealLabels[e.meal]||e.meal, e.notes||''].forEach(v => {
+          const td = document.createElement('td');
+          td.className = 'py-1.5 pr-2';
+          td.textContent = v;
+          tr.appendChild(td);
+        });
+        const delTd = document.createElement('td');
+        const btn = document.createElement('button');
+        btn.textContent = '×'; btn.className = 'text-red-300 hover:text-red-500 font-bold';
+        btn.setAttribute('aria-label','Delete entry');
+        btn.addEventListener('click', () => { const d = load(); d.splice(realIdx,1); save(d); render(); });
+        delTd.appendChild(btn); tr.appendChild(delTd);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function render() {
+      const entries = load();
+      renderWeeklyChart(entries, 'mood', 'moodChart', dowColors);
+      renderWeeklyChart(entries, 'energy', 'energyChart', energyColors);
+      renderCorrelation(entries);
+      renderHistory(entries);
+    }
+
+    document.getElementById('entryDate').value = new Date().toISOString().slice(0,10);
+
+    document.getElementById('logBtn').addEventListener('click', () => {
+      const errEl = document.getElementById('formError');
+      const date = document.getElementById('entryDate').value;
+      if (!date) { errEl.textContent = 'Please select a date.'; errEl.classList.remove('hidden'); return; }
+      errEl.classList.add('hidden');
+      const entry = {
+        date,
+        slot: document.getElementById('entrySlot').value,
+        mood: parseInt(moodEl.value),
+        energy: parseInt(energyEl.value),
+        sleep: parseFloat(document.getElementById('sleepHours').value) || null,
+        meal: document.getElementById('mealType').value,
+        notes: document.getElementById('entryNotes').value.trim()
+      };
+      const data = load();
+      data.push(entry);
+      save(data);
+      document.getElementById('sleepHours').value = '';
+      document.getElementById('entryNotes').value = '';
+      moodEl.value = 5; document.getElementById('moodVal').textContent = '5';
+      energyEl.value = 5; document.getElementById('energyVal').textContent = '5';
+      render();
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const data = load();
+      if (!data.length) return;
+      const header = 'Date,Slot,Mood,Energy,Sleep,Meal,Notes';
+      const rows = data.map(e => [e.date, e.slot, e.mood, e.energy, e.sleep||'', e.meal, '"'+(e.notes||'').replace(/"/g,'""')+'"'].join(','));
+      const csv = [header,...rows].join('\n');
+      const blob = new Blob([csv],{type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='mood-food-journal.csv'; a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    render();
+  </script>
+</body>
+</html>
